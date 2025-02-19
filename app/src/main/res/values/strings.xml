@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">iBeacon</string>
+    <string name="major_value">Major Value</string>
+    <string name="minor_value">Minor Value</string>
 </resources>

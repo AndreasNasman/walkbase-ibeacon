@@ -15,14 +15,14 @@ private const val IBEACON_LAYOUT = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24,d:
 private const val IBEACON_TYPE_CODE: Int = 0x0215
 
 class IBeacon(
+    var majorValue: String,
+    var minorValue: String,
     private val context: Context,
     private val uuid: String,
     private val beaconLayout: String = IBEACON_LAYOUT,
     private val beaconTypeCode: Int = IBEACON_TYPE_CODE,
     private val dataFields: List<Long> = listOf(0L),
-    private val majorValue: String = "1",
     private val manufacturerId: Int = APPLE_INC_MANUFACTURER_ID,
-    private val minorValue: String = "2",
     // Signal strength at 1 meter measured in dBm. -59 is a typical starting point for BLE devices.
     private val txPower: Int = -59,
 ) {
