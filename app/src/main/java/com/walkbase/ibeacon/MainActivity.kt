@@ -30,7 +30,6 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.walkbase.ibeacon.sdk.IBeacon
@@ -169,19 +168,6 @@ fun DemoApp(
                 }
             }
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    IBeaconTheme {
-        DemoApp(
-            onPauseButtonClick = {},
-            onPlayButtonClick = {},
-            onStopButtonClick = {},
-            playbackState = PlaybackState.PLAYING
-        )
     }
 }
 
