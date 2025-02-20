@@ -107,6 +107,17 @@ class MainActivity : ComponentActivity() {
         if (playbackState.value == PlaybackState.PAUSED) {
             iBeacon.resumeBeaconTransmission()
         } else if (playbackState.value == PlaybackState.STOPPED) {
+            val majorValueInt = majorValue.value.toIntOrNull()
+            if (majorValueInt == null || majorValueInt <= 0) {
+                majorValue.value = "0"
+                iBeacon.majorValue = majorValue.value
+            }
+            val minorValueInt = minorValue.value.toIntOrNull()
+            if (minorValueInt == null || minorValueInt <= 0) {
+                minorValue.value = "0"
+                iBeacon.minorValue = minorValue.value
+            }
+
             iBeacon.startBeaconTransmission()
         }
         playbackState.value = PlaybackState.PLAYING
@@ -200,43 +211,37 @@ fun DemoApp(
             }
         }
 
-        if (playbackState == PlaybackState.STOPPED) {
-            Column(
-                modifier = Modifier.align(Alignment.BottomEnd)
-            ) {
-                Row {
-                    TextField(
-                        keyboardOptions = KeyboardOptions.Default.copy(
-                            keyboardType = KeyboardType.Number,
-                            imeAction = ImeAction.Next
-                        ),
-                        label = { Text(stringResource(R.string.major_value)) },
-                        onValueChange = { newValue ->
-                            val intNewValue = newValue.toIntOrNull()
-                            if (intNewValue != null && intNewValue.toInt() > 0) {
-                                onMajorValueChange(newValue)
-                            }
-                        },
-                        value = majorValue,
-                        modifier = Modifier.weight(1f)
-                    )
-                    Spacer(modifier = Modifier.width(10.dp))
-                    TextField(
-                        keyboardOptions = KeyboardOptions.Default.copy(
-                            keyboardType = KeyboardType.Number,
-                            imeAction = ImeAction.Done
-                        ),
-                        label = { Text(stringResource(R.string.minor_value)) },
-                        onValueChange = { newValue ->
-                            val intNewValue = newValue.toIntOrNull()
-                            if (intNewValue != null && intNewValue.toInt() > 0) {
-                                onMinorValueChange(newValue)
-                            }
-                        },
-                        value = minorValue,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
+        Column(
+            modifier = Modifier.align(Alignment.BottomEnd)
+        ) {
+            Row {
+                TextField(
+                    enabled = playbackState == PlaybackState.STOPPED,
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        keyboardType = KeyboardType.Number,
+                        imeAction = ImeAction.Next
+                    ),
+                    label = { Text(stringResource(R.string.major_value)) },
+                    onValueChange = { newValue ->
+                        onMajorValueChange(newValue)
+                    },
+                    value = majorValue,
+                    modifier = Modifier.weight(1f)
+                )
+                Spacer(modifier = Modifier.width(10.dp))
+                TextField(
+                    enabled = playbackState == PlaybackState.STOPPED,
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        keyboardType = KeyboardType.Number,
+                        imeAction = ImeAction.Done
+                    ),
+                    label = { Text(stringResource(R.string.minor_value)) },
+                    onValueChange = { newValue ->
+                        onMinorValueChange(newValue)
+                    },
+                    value = minorValue,
+                    modifier = Modifier.weight(1f)
+                )
             }
         }
     }
