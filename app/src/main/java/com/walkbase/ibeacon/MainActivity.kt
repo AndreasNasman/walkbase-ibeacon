@@ -2,7 +2,7 @@ package com.walkbase.ibeacon
 
 import android.Manifest
 import android.os.Bundle
-import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -132,19 +132,13 @@ class MainActivity : ComponentActivity() {
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions: Map<String, @JvmSuppressWildcards Boolean> ->
         if (permissions.values.all { it }) {
-            Log.d(this::class.simpleName, "All permissions granted.")
+            Toast.makeText(this, "All permissions granted.", Toast.LENGTH_SHORT).show()
         } else {
-            Log.d(
-                this::class.simpleName,
-                "Granted permissions: ${
-                    permissions.entries.filter { it.value }.map { it.key }
-                }"
-            )
-            Log.d(
-                this::class.simpleName,
-                "Denied permissions: ${permissions.entries.filter { !it.value }.map { it.key }}"
-            )
-            // TODO: Handle denied permissions.
+            Toast.makeText(
+                this,
+                R.string.permission_error,
+                Toast.LENGTH_LONG
+            ).show()
         }
     }
 }
