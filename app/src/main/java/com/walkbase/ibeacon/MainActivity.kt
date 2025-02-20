@@ -20,13 +20,20 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
@@ -49,6 +56,14 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        iBeacon = IBeacon(
+            context = this,
+            majorValue = majorValue.value,
+            minorValue = minorValue.value,
+            uuid = "856E3AB6-5EA8-45EB-9813-676BB29C4316"
+        )
+
         enableEdgeToEdge()
         setContent {
             IBeaconTheme {
@@ -56,12 +71,16 @@ class MainActivity : ComponentActivity() {
                     DemoApp(
                         majorValue = majorValue.value,
                         minorValue = minorValue.value,
+                        modes = iBeacon.modes,
                         onMajorValueChange = handleMajorValueChange,
                         onMinorValueChange = handleMinorValueChange,
+                        onModeChange = handleModeChange,
                         onPauseButtonClick = handlePauseButtonClick,
                         onPlayButtonClick = handlePlayButtonClick,
                         onStopButtonClick = handleStopButtonClick,
+                        onTxPowerLevelChange = handleTxPowerLevelChange,
                         playbackState = playbackState.value,
+                        txPowerLevels = iBeacon.txPowerLevels,
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
@@ -80,13 +99,6 @@ class MainActivity : ComponentActivity() {
                 // Manifest.permission.ACCESS_BACKGROUND_LOCATION,
             )
         )
-
-        iBeacon = IBeacon(
-            context = this,
-            majorValue = majorValue.value,
-            minorValue = minorValue.value,
-            uuid = "856E3AB6-5EA8-45EB-9813-676BB29C4316"
-        )
     }
 
     private val handleMajorValueChange: (String) -> Unit = {
@@ -96,6 +108,10 @@ class MainActivity : ComponentActivity() {
     private val handleMinorValueChange: (String) -> Unit = {
         minorValue.value = it
         iBeacon.minorValue = it
+    }
+
+    private val handleModeChange: (Int) -> Unit = {
+        iBeacon.changeMode(it)
     }
 
     private val handlePauseButtonClick: () -> Unit = {
@@ -128,6 +144,10 @@ class MainActivity : ComponentActivity() {
         playbackState.value = PlaybackState.STOPPED
     }
 
+    private val handleTxPowerLevelChange: (Int) -> Unit = {
+        iBeacon.changeTxPowerLevel(it)
+    }
+
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions: Map<String, @JvmSuppressWildcards Boolean> ->
@@ -147,12 +167,16 @@ class MainActivity : ComponentActivity() {
 fun DemoApp(
     majorValue: String,
     minorValue: String,
+    modes: Map<String, Int>,
     onMajorValueChange: (String) -> Unit,
     onMinorValueChange: (String) -> Unit,
+    onModeChange: (Int) -> Unit,
     onPauseButtonClick: () -> Unit,
     onPlayButtonClick: () -> Unit,
     onStopButtonClick: () -> Unit,
+    onTxPowerLevelChange: (Int) -> Unit,
     playbackState: PlaybackState,
+    txPowerLevels: Map<String, Int>,
     modifier: Modifier = Modifier
 ) {
     Box(modifier = modifier.fillMaxSize()) {
@@ -209,6 +233,20 @@ fun DemoApp(
             modifier = Modifier.align(Alignment.BottomEnd)
         ) {
             Row {
+                Select(
+                    options = txPowerLevels,
+                    handleOnClick = onTxPowerLevelChange,
+                    modifier = Modifier.weight(1f)
+                )
+                Spacer(modifier = Modifier.width(10.dp))
+                Select(
+                    options = modes,
+                    handleOnClick = onModeChange,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            Row {
                 TextField(
                     enabled = playbackState == PlaybackState.STOPPED,
                     keyboardOptions = KeyboardOptions.Default.copy(
@@ -235,6 +273,43 @@ fun DemoApp(
                     },
                     value = minorValue,
                     modifier = Modifier.weight(1f)
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun Select(options: Map<String, Int>, handleOnClick: (Int) -> Unit, modifier: Modifier = Modifier) {
+    var expanded by remember { mutableStateOf(false) }
+    var selectedOption by remember { mutableStateOf(options.keys.first()) }
+
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = !expanded },
+        modifier = modifier
+    ) {
+        TextField(
+            label = { Text(stringResource(R.string.tx_power)) },
+            onValueChange = { selectedOption = it },
+            readOnly = true,
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            value = selectedOption,
+            modifier = Modifier.menuAnchor()
+        )
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            options.forEach { (key, value) ->
+                DropdownMenuItem(
+                    text = { Text(key) },
+                    onClick = {
+                        selectedOption = key
+                        expanded = false
+                        handleOnClick(value)
+                    }
                 )
             }
         }

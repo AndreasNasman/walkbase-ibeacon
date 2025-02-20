@@ -26,6 +26,17 @@ class IBeacon(
     // Signal strength at 1 meter measured in dBm. -59 is a typical starting point for BLE devices.
     private val txPower: Int = -59,
 ) {
+    val modes: Map<String, Int> = mapOf(
+        "Low power" to AdvertiseSettings.ADVERTISE_MODE_LOW_POWER,
+        "Balanced" to AdvertiseSettings.ADVERTISE_MODE_BALANCED,
+        "Low latency" to AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY
+    )
+    val txPowerLevels: Map<String, Int> = mapOf(
+        "Ultra low" to AdvertiseSettings.ADVERTISE_TX_POWER_ULTRA_LOW,
+        "Low" to AdvertiseSettings.ADVERTISE_TX_POWER_LOW,
+        "Medium" to AdvertiseSettings.ADVERTISE_TX_POWER_MEDIUM,
+        "High" to AdvertiseSettings.ADVERTISE_TX_POWER_HIGH
+    )
     private val beaconParser = BeaconParser().setBeaconLayout(beaconLayout)
     private val beaconTransmitter = BeaconTransmitter(context, beaconParser)
 
@@ -65,6 +76,14 @@ class IBeacon(
 
     fun stopBeaconTransmission() {
         beaconTransmitter.stopAdvertising()
+    }
+
+    fun changeMode(@AdvertiseMode advertiseMode: Int) {
+        beaconTransmitter.advertiseMode = advertiseMode
+    }
+
+    fun changeTxPowerLevel(@AdvertiseTxPowerLevel advertiseTxPowerLevel: Int) {
+        beaconTransmitter.advertiseTxPowerLevel = advertiseTxPowerLevel
     }
 }
 
