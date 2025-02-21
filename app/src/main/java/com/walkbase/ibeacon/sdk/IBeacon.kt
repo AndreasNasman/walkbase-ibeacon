@@ -46,10 +46,7 @@ class IBeacon(
     private val beaconParser = BeaconParser().setBeaconLayout(beaconLayout)
     private val beaconTransmitter = BeaconTransmitter(context, beaconParser)
 
-    fun startBeaconTransmission(
-        @AdvertiseMode advertiseMode: Int? = null,
-        @AdvertiseTxPowerLevel advertiseTxPowerLevel: Int? = null
-    ) {
+    fun startBeaconTransmission() {
         val beacon = Beacon.Builder()
             .setId1(uuid)
             .setId2(majorValue)
@@ -59,14 +56,6 @@ class IBeacon(
             .setTxPower(txPower)
             .setDataFields(dataFields)
             .build()
-
-        // Use library defaults if omitted.
-        if (advertiseMode != null) {
-            beaconTransmitter.advertiseMode = advertiseMode
-        }
-        if (advertiseTxPowerLevel != null) {
-            beaconTransmitter.advertiseTxPowerLevel = advertiseTxPowerLevel
-        }
 
         beaconTransmitter.startAdvertising(beacon)
     }
