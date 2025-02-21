@@ -30,6 +30,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -49,8 +50,6 @@ import com.walkbase.ibeacon.sdk.IBeacon
 import com.walkbase.ibeacon.ui.theme.IBeaconTheme
 
 class MainActivity : ComponentActivity() {
-    private var majorValue = mutableStateOf("1")
-    private var minorValue = mutableStateOf("2")
     private var playbackState = mutableStateOf(PlaybackState.STOPPED)
     private lateinit var iBeacon: IBeacon
 
@@ -59,8 +58,6 @@ class MainActivity : ComponentActivity() {
 
         iBeacon = IBeacon(
             context = this,
-            majorValue = majorValue.value,
-            minorValue = minorValue.value,
             uuid = "856E3AB6-5EA8-45EB-9813-676BB29C4316"
         )
 
@@ -69,16 +66,14 @@ class MainActivity : ComponentActivity() {
             IBeaconTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     DemoApp(
-                        majorValue = majorValue.value,
-                        minorValue = minorValue.value,
                         modes = iBeacon.modes,
-                        onMajorValueChange = handleMajorValueChange,
-                        onMinorValueChange = handleMinorValueChange,
-                        onModeChange = handleModeChange,
+                        onMajorValueChange = { iBeacon.majorValue = it },
+                        onMinorValueChange = { iBeacon.minorValue = it },
+                        onModeChange = { iBeacon.changeMode(it) },
                         onPauseButtonClick = handlePauseButtonClick,
                         onPlayButtonClick = handlePlayButtonClick,
                         onStopButtonClick = handleStopButtonClick,
-                        onTxPowerLevelChange = handleTxPowerLevelChange,
+                        onTxPowerLevelChange = { iBeacon.changeTxPowerLevel(it) },
                         playbackState = playbackState.value,
                         txPowerLevels = iBeacon.txPowerLevels,
                         modifier = Modifier.padding(innerPadding)
@@ -101,40 +96,17 @@ class MainActivity : ComponentActivity() {
         )
     }
 
-    private val handleMajorValueChange: (String) -> Unit = {
-        majorValue.value = it
-        iBeacon.majorValue = it
-    }
-    private val handleMinorValueChange: (String) -> Unit = {
-        minorValue.value = it
-        iBeacon.minorValue = it
-    }
-
-    private val handleModeChange: (Int) -> Unit = {
-        iBeacon.changeMode(it)
-    }
-
     private val handlePauseButtonClick: () -> Unit = {
         iBeacon.pauseBeaconTransmission()
         playbackState.value = PlaybackState.PAUSED
     }
 
     private val handlePlayButtonClick: () -> Unit = {
-        if (playbackState.value == PlaybackState.PAUSED) {
-            iBeacon.resumeBeaconTransmission()
-        } else if (playbackState.value == PlaybackState.STOPPED) {
-            val majorValueInt = majorValue.value.toIntOrNull()
-            if (majorValueInt == null || majorValueInt <= 0) {
-                majorValue.value = "0"
-                iBeacon.majorValue = majorValue.value
-            }
-            val minorValueInt = minorValue.value.toIntOrNull()
-            if (minorValueInt == null || minorValueInt <= 0) {
-                minorValue.value = "0"
-                iBeacon.minorValue = minorValue.value
-            }
-
-            iBeacon.startBeaconTransmission()
+        when (playbackState.value) {
+            PlaybackState.STOPPED -> iBeacon.startBeaconTransmission()
+            PlaybackState.PAUSED -> iBeacon.resumeBeaconTransmission()
+            // TODO: Handle this branch properly.
+            else -> throw Error("Unhandled playback state.")
         }
         playbackState.value = PlaybackState.PLAYING
     }
@@ -142,10 +114,6 @@ class MainActivity : ComponentActivity() {
     private val handleStopButtonClick: () -> Unit = {
         iBeacon.stopBeaconTransmission()
         playbackState.value = PlaybackState.STOPPED
-    }
-
-    private val handleTxPowerLevelChange: (Int) -> Unit = {
-        iBeacon.changeTxPowerLevel(it)
     }
 
     private val requestPermissionLauncher = registerForActivityResult(
@@ -165,8 +133,6 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun DemoApp(
-    majorValue: String,
-    minorValue: String,
     modes: Map<String, Int>,
     onMajorValueChange: (String) -> Unit,
     onMinorValueChange: (String) -> Unit,
@@ -247,31 +213,20 @@ fun DemoApp(
             }
 
             Row {
-                TextField(
+                NumericTextField(
                     enabled = playbackState == PlaybackState.STOPPED,
-                    keyboardOptions = KeyboardOptions.Default.copy(
-                        keyboardType = KeyboardType.Number,
-                        imeAction = ImeAction.Next
-                    ),
-                    label = { Text(stringResource(R.string.major_value)) },
-                    onValueChange = { newValue ->
-                        onMajorValueChange(newValue)
-                    },
-                    value = majorValue,
+                    handleValueChange = { newValue -> onMajorValueChange(newValue) },
+                    initialValue = "1",
+                    label = stringResource(R.string.major_value),
                     modifier = Modifier.weight(1f)
                 )
                 Spacer(modifier = Modifier.width(10.dp))
-                TextField(
+                NumericTextField(
                     enabled = playbackState == PlaybackState.STOPPED,
-                    keyboardOptions = KeyboardOptions.Default.copy(
-                        keyboardType = KeyboardType.Number,
-                        imeAction = ImeAction.Done
-                    ),
-                    label = { Text(stringResource(R.string.minor_value)) },
-                    onValueChange = { newValue ->
-                        onMinorValueChange(newValue)
-                    },
-                    value = minorValue,
+                    handleValueChange = { newValue -> onMinorValueChange(newValue) },
+                    imeAction = ImeAction.Done,
+                    initialValue = "2",
+                    label = stringResource(R.string.minor_value),
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -279,11 +234,47 @@ fun DemoApp(
     }
 }
 
+@Composable
+fun NumericTextField(
+    enabled: Boolean,
+    handleValueChange: (String) -> Unit,
+    initialValue: String,
+    label: String,
+    modifier: Modifier = Modifier,
+    imeAction: ImeAction = ImeAction.Next,
+) {
+    var value by remember { mutableStateOf(initialValue) }
+
+    LaunchedEffect(Unit) {
+        handleValueChange(value)
+    }
+
+    TextField(
+        enabled = enabled,
+        keyboardOptions = KeyboardOptions.Default.copy(
+            imeAction = imeAction,
+            keyboardType = KeyboardType.Number
+        ),
+        label = { Text(label) },
+        onValueChange = {
+            value = it
+            handleValueChange(it)
+        },
+        value = value,
+        modifier = modifier
+    )
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Select(options: Map<String, Int>, handleOnClick: (Int) -> Unit, modifier: Modifier = Modifier) {
     var expanded by remember { mutableStateOf(false) }
-    var selectedOption by remember { mutableStateOf(options.keys.first()) }
+    var selectedOption by remember { mutableStateOf(options.keys.last()) }
+
+    LaunchedEffect(Unit) {
+        // TODO: Handle the error more gracefully.
+        handleOnClick(options[selectedOption] ?: error("Invalid option"))
+    }
 
     ExposedDropdownMenuBox(
         expanded = expanded,

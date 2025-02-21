@@ -15,8 +15,6 @@ private const val IBEACON_LAYOUT = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24,d:
 private const val IBEACON_TYPE_CODE: Int = 0x0215
 
 class IBeacon(
-    var majorValue: String,
-    var minorValue: String,
     private val context: Context,
     private val uuid: String,
     private val beaconLayout: String = IBEACON_LAYOUT,
@@ -26,6 +24,14 @@ class IBeacon(
     // Signal strength at 1 meter measured in dBm. -59 is a typical starting point for BLE devices.
     private val txPower: Int = -59,
 ) {
+    var majorValue: String = "0"
+        set(value) {
+            field = (value.toIntOrNull()?.takeIf { it > 0 } ?: 0).toString()
+        }
+    var minorValue: String = "0"
+        set(value) {
+            field = (value.toIntOrNull()?.takeIf { it > 0 } ?: 0).toString()
+        }
     val modes: Map<String, Int> = mapOf(
         "Low power" to AdvertiseSettings.ADVERTISE_MODE_LOW_POWER,
         "Balanced" to AdvertiseSettings.ADVERTISE_MODE_BALANCED,
