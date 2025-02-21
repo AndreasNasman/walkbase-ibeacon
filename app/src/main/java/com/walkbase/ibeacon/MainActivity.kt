@@ -269,7 +269,7 @@ fun Select(
     modifier: Modifier = Modifier
 ) {
     var expanded by remember { mutableStateOf(false) }
-    var selectedOption by remember { mutableStateOf(options.keys.last()) }
+    var selectedOption by remember { mutableStateOf(options.keys.first()) }
 
     LaunchedEffect(Unit) {
         // TODO: Handle the error more gracefully.
