@@ -64,9 +64,9 @@ class MainActivity : ComponentActivity() {
                         onMajorValueChange = { iBeacon.majorValue = it },
                         onMinorValueChange = { iBeacon.minorValue = it },
                         onModeChange = { iBeacon.changeMode(it) },
-                        onPauseButtonClick = handlePauseButtonClick,
-                        onPlayButtonClick = handlePlayButtonClick,
-                        onStopButtonClick = handleStopButtonClick,
+                        onPauseButtonClick = pause,
+                        onPlayButtonClick = play,
+                        onStopButtonClick = stop,
                         onTxPowerLevelChange = { iBeacon.changeTxPowerLevel(it) },
                         playbackState = playbackState.value,
                         txPowerLevels = iBeacon.txPowerLevels,
@@ -77,12 +77,26 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private val handlePauseButtonClick: () -> Unit = {
+    private var shouldResume = mutableStateOf(false)
+
+    override fun onPause() {
+        super.onPause()
+        pause()
+        shouldResume.value = true
+    }
+
+    private val pause: () -> Unit = {
         iBeacon.pauseBeaconTransmission()
         playbackState.value = PlaybackState.PAUSED
     }
 
-    private val handlePlayButtonClick: () -> Unit = {
+    override fun onResume() {
+        super.onResume()
+        play()
+        shouldResume.value = false
+    }
+
+    private val play: () -> Unit = {
         when (playbackState.value) {
             PlaybackState.STOPPED -> iBeacon.startBeaconTransmission()
             PlaybackState.PAUSED -> iBeacon.resumeBeaconTransmission()
@@ -92,7 +106,17 @@ class MainActivity : ComponentActivity() {
         playbackState.value = PlaybackState.PLAYING
     }
 
-    private val handleStopButtonClick: () -> Unit = {
+    override fun onStop() {
+        super.onStop()
+        stop()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        stop()
+    }
+
+    private val stop: () -> Unit = {
         iBeacon.stopBeaconTransmission()
         playbackState.value = PlaybackState.STOPPED
     }
