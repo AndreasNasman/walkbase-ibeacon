@@ -56,10 +56,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        iBeacon = IBeacon(
-            context = this,
-            uuid = "856E3AB6-5EA8-45EB-9813-676BB29C4316"
-        )
+        iBeacon = IBeacon(context = this)
 
         enableEdgeToEdge()
         setContent {

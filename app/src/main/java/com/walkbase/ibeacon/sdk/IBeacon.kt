@@ -16,13 +16,14 @@ private const val IBEACON_TYPE_CODE: Int = 0x0215
 
 class IBeacon(
     private val context: Context,
-    private val uuid: String,
     private val beaconLayout: String = IBEACON_LAYOUT,
     private val beaconTypeCode: Int = IBEACON_TYPE_CODE,
     private val dataFields: List<Long> = listOf(0L),
     private val manufacturerId: Int = APPLE_INC_MANUFACTURER_ID,
     // Signal strength at 1 meter measured in dBm. -59 is a typical starting point for BLE devices.
     private val txPower: Int = -59,
+    // TODO: Calculate the UUID per device.
+    private val uuid: String = "856E3AB6-5EA8-45EB-9813-676BB29C4316",
 ) {
     var majorValue: String = "0"
         set(value) {
