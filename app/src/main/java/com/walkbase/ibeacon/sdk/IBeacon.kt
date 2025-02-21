@@ -1,8 +1,14 @@
 package com.walkbase.ibeacon.sdk
 
+import android.Manifest
 import android.bluetooth.le.AdvertiseSettings
-import android.content.Context
+import android.content.pm.PackageManager
+import android.widget.Toast
+import androidx.activity.ComponentActivity
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.IntDef
+import androidx.core.content.ContextCompat
+import com.walkbase.ibeacon.R
 import org.altbeacon.beacon.Beacon
 import org.altbeacon.beacon.BeaconParser
 import org.altbeacon.beacon.BeaconTransmitter
@@ -15,7 +21,7 @@ private const val IBEACON_LAYOUT = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24,d:
 private const val IBEACON_TYPE_CODE: Int = 0x0215
 
 class IBeacon(
-    private val context: Context,
+    private val context: ComponentActivity,
     private val beaconLayout: String = IBEACON_LAYOUT,
     private val beaconTypeCode: Int = IBEACON_TYPE_CODE,
     private val dataFields: List<Long> = listOf(0L),
@@ -33,6 +39,7 @@ class IBeacon(
         set(value) {
             field = (value.toIntOrNull()?.takeIf { it > 0 } ?: 0).toString()
         }
+
     val modes: Map<String, Int> = mapOf(
         "Low power" to AdvertiseSettings.ADVERTISE_MODE_LOW_POWER,
         "Balanced" to AdvertiseSettings.ADVERTISE_MODE_BALANCED,
@@ -44,21 +51,25 @@ class IBeacon(
         "Medium" to AdvertiseSettings.ADVERTISE_TX_POWER_MEDIUM,
         "High" to AdvertiseSettings.ADVERTISE_TX_POWER_HIGH
     )
+
     private val beaconParser = BeaconParser().setBeaconLayout(beaconLayout)
     private val beaconTransmitter = BeaconTransmitter(context, beaconParser)
 
     fun startBeaconTransmission() {
-        val beacon = Beacon.Builder()
-            .setId1(uuid)
-            .setId2(majorValue)
-            .setId3(minorValue)
-            .setBeaconTypeCode(beaconTypeCode)
-            .setManufacturer(manufacturerId)
-            .setTxPower(txPower)
-            .setDataFields(dataFields)
-            .build()
-
-        beaconTransmitter.startAdvertising(beacon)
+        actionFunction = {
+            beaconTransmitter.startAdvertising(
+                Beacon.Builder()
+                    .setId1(uuid)
+                    .setId2(majorValue)
+                    .setId3(minorValue)
+                    .setBeaconTypeCode(beaconTypeCode)
+                    .setManufacturer(manufacturerId)
+                    .setTxPower(txPower)
+                    .setDataFields(dataFields)
+                    .build()
+            )
+        }
+        doAction()
     }
 
     fun pauseBeaconTransmission() {
@@ -67,7 +78,8 @@ class IBeacon(
     }
 
     fun resumeBeaconTransmission() {
-        beaconTransmitter.startAdvertising()
+        actionFunction = { beaconTransmitter.startAdvertising() }
+        doAction()
     }
 
     fun stopBeaconTransmission() {
@@ -81,6 +93,79 @@ class IBeacon(
     fun changeTxPowerLevel(@AdvertiseTxPowerLevel advertiseTxPowerLevel: Int) {
         beaconTransmitter.advertiseTxPowerLevel = advertiseTxPowerLevel
     }
+
+    companion object {
+        private const val ACCESS_FINE_LOCATION = Manifest.permission.ACCESS_FINE_LOCATION
+        private const val BLUETOOTH_SCAN = Manifest.permission.BLUETOOTH_SCAN
+        private const val BLUETOOTH_ADVERTISE = Manifest.permission.BLUETOOTH_ADVERTISE
+        // Add if needed.
+        // private const val BLUETOOTH_CONNECT = Manifest.permission.BLUETOOTH_CONNECT
+        // TODO: Handle this permission separately since you cannot request it directly.
+        // https://developer.android.com/reference/android/Manifest.permission#ACCESS_BACKGROUND_LOCATION
+        // private const val ACCESS_BACKGROUND_LOCATION = Manifest.permission.ACCESS_BACKGROUND_LOCATION
+    }
+
+    private fun doAction() {
+        val location = isPermissionGranted(ACCESS_FINE_LOCATION)
+        val bluetooth = listOf(
+            isPermissionGranted(BLUETOOTH_SCAN),
+            isPermissionGranted(BLUETOOTH_ADVERTISE)
+        ).all { it }
+
+        when {
+            location && bluetooth -> {
+                Toast.makeText(context, R.string.permissions_granted, Toast.LENGTH_LONG).show()
+                actionFunction?.invoke() ?: error("No action function.")
+            }
+
+            // TODO: Handle more rationale cases.
+            location && !bluetooth -> {
+                if (context.shouldShowRequestPermissionRationale(BLUETOOTH_SCAN) ||
+                    context.shouldShowRequestPermissionRationale(BLUETOOTH_ADVERTISE)
+                ) {
+                    Toast.makeText(
+                        context,
+                        "TODO: Ask for permission with rationale.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } else {
+                    permissionRequest.launch(arrayOf(BLUETOOTH_SCAN, BLUETOOTH_ADVERTISE))
+                }
+            }
+
+            else -> permissionRequest.launch(
+                arrayOf(
+                    ACCESS_FINE_LOCATION,
+                    BLUETOOTH_SCAN,
+                    BLUETOOTH_ADVERTISE
+                )
+            )
+        }
+    }
+
+    private fun doPermissionAction() {
+        val location = isPermissionGranted(ACCESS_FINE_LOCATION)
+        val bluetooth = listOf(
+            isPermissionGranted(BLUETOOTH_SCAN),
+            isPermissionGranted(BLUETOOTH_ADVERTISE)
+        ).all { it }
+        when {
+            location && bluetooth -> {
+                Toast.makeText(context, R.string.permissions_granted, Toast.LENGTH_LONG).show()
+                actionFunction?.invoke() ?: error("No action function.")
+            }
+
+            else -> Toast.makeText(context, R.string.permission_error, Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private var actionFunction: (() -> Unit)? = null
+
+    private val permissionRequest =
+        context.registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { doPermissionAction() }
+
+    private fun isPermissionGranted(permission: String) =
+        ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
 }
 
 @Retention(AnnotationRetention.SOURCE)

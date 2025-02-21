@@ -1,12 +1,9 @@
 package com.walkbase.ibeacon
 
-import android.Manifest
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -78,19 +75,6 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-
-        requestPermissionLauncher.launch(
-            arrayOf(
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.BLUETOOTH_SCAN,
-                Manifest.permission.BLUETOOTH_ADVERTISE
-                // Add if needed.
-                // Manifest.permission.BLUETOOTH_CONNECT,
-                // TODO: Handle this permission separately since you cannot request it directly.
-                // https://developer.android.com/reference/android/Manifest.permission#ACCESS_BACKGROUND_LOCATION
-                // Manifest.permission.ACCESS_BACKGROUND_LOCATION,
-            )
-        )
     }
 
     private val handlePauseButtonClick: () -> Unit = {
@@ -103,7 +87,7 @@ class MainActivity : ComponentActivity() {
             PlaybackState.STOPPED -> iBeacon.startBeaconTransmission()
             PlaybackState.PAUSED -> iBeacon.resumeBeaconTransmission()
             // TODO: Handle this branch properly.
-            else -> throw Error("Unhandled playback state.")
+            else -> error("Unhandled playback state.")
         }
         playbackState.value = PlaybackState.PLAYING
     }
@@ -111,20 +95,6 @@ class MainActivity : ComponentActivity() {
     private val handleStopButtonClick: () -> Unit = {
         iBeacon.stopBeaconTransmission()
         playbackState.value = PlaybackState.STOPPED
-    }
-
-    private val requestPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestMultiplePermissions()
-    ) { permissions: Map<String, @JvmSuppressWildcards Boolean> ->
-        if (permissions.values.all { it }) {
-            Toast.makeText(this, "All permissions granted.", Toast.LENGTH_SHORT).show()
-        } else {
-            Toast.makeText(
-                this,
-                R.string.permission_error,
-                Toast.LENGTH_LONG
-            ).show()
-        }
     }
 }
 

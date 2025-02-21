@@ -4,5 +4,6 @@
     <string name="minor_value">Minor Value</string>
     <string name="mode">Mode</string>
     <string name="permission_error">You must give access to location and Bluetooth for the iBeacon SDK.</string>
+    <string name="permissions_granted">All required permissions granted.</string>
     <string name="tx_power">TX Power</string>
 </resources>
