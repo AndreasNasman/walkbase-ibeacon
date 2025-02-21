@@ -102,7 +102,7 @@ class MainActivity : ComponentActivity() {
         when (playbackState.value) {
             PlaybackState.STOPPED -> iBeacon.startBeaconTransmission()
             PlaybackState.PAUSED -> iBeacon.resumeBeaconTransmission()
-            // TODO: Handle this branch properly.
+            // TODO: Handle this branch appropriately.
             else -> error("Unhandled playback state.")
         }
         playbackState.value = PlaybackState.PLAYING

@@ -133,7 +133,8 @@ class IBeacon(
 
         when {
             location && bluetooth -> {
-                Toast.makeText(context, R.string.permissions_granted, Toast.LENGTH_LONG).show()
+                Toast.makeText(context, R.string.permissions_granted, Toast.LENGTH_SHORT).show()
+                // TODO: Handle the error appropriately.
                 actionFunction?.invoke() ?: error("No action function.")
             }
 
@@ -170,10 +171,12 @@ class IBeacon(
         ).all { it }
         when {
             location && bluetooth -> {
-                Toast.makeText(context, R.string.permissions_granted, Toast.LENGTH_LONG).show()
+                Toast.makeText(context, R.string.permissions_granted, Toast.LENGTH_SHORT).show()
+                // TODO: Handle the error appropriately.
                 actionFunction?.invoke() ?: error("No action function.")
             }
 
+            // TODO: Handle the error appropriately.
             else -> Toast.makeText(context, R.string.permission_error, Toast.LENGTH_LONG).show()
         }
     }
