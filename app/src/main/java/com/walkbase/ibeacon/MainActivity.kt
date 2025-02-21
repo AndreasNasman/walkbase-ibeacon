@@ -77,25 +77,9 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private var shouldResume = mutableStateOf(false)
-
-    override fun onPause() {
-        super.onPause()
-        pause()
-        shouldResume.value = true
-    }
-
     private val pause: () -> Unit = {
         iBeacon.pauseBeaconTransmission()
         playbackState.value = PlaybackState.PAUSED
-    }
-
-    override fun onResume() {
-        super.onResume()
-        if (shouldResume.value) {
-            play()
-            shouldResume.value = false
-        }
     }
 
     private val play: () -> Unit = {
