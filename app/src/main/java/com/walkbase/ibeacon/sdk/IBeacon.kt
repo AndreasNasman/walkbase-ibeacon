@@ -65,6 +65,7 @@ class IBeacon(
                     .setDataFields(dataFields)
                     .build()
             )
+            notifyTransmitting()
         }
         doAction()
     }
@@ -75,7 +76,10 @@ class IBeacon(
     }
 
     fun resumeBeaconTransmission() {
-        actionFunction = { beaconTransmitter.startAdvertising() }
+        actionFunction = {
+            beaconTransmitter.startAdvertising()
+            notifyTransmitting()
+        }
         doAction()
     }
 
@@ -85,10 +89,28 @@ class IBeacon(
 
     fun changeMode(@AdvertiseMode advertiseMode: Int) {
         beaconTransmitter.advertiseMode = advertiseMode
+        if (beaconTransmitter.isStarted) {
+            notifyTransmitting()
+        }
     }
 
     fun changeTxPowerLevel(@AdvertiseTxPowerLevel advertiseTxPowerLevel: Int) {
         beaconTransmitter.advertiseTxPowerLevel = advertiseTxPowerLevel
+        if (beaconTransmitter.isStarted) {
+            notifyTransmitting()
+        }
+    }
+
+    private fun notifyTransmitting() {
+        Toast.makeText(
+            context,
+            context.getString(
+                R.string.transmitting,
+                modes.filterValues { it == beaconTransmitter.advertiseMode }.keys.first(),
+                txPowerLevels.filterValues { it == beaconTransmitter.advertiseTxPowerLevel }.keys.first()
+            ),
+            Toast.LENGTH_SHORT
+        ).show()
     }
 
     companion object {
