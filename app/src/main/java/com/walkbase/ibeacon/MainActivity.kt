@@ -53,7 +53,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        iBeacon = IBeacon(context = this)
+        iBeacon = IBeacon(context = this, onAllPermissionsRejected = stop)
 
         enableEdgeToEdge()
         setContent {

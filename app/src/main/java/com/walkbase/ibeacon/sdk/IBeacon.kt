@@ -22,6 +22,7 @@ private const val IBEACON_TYPE_CODE: Int = 0x0215
 
 class IBeacon(
     private val context: ComponentActivity,
+    private val onAllPermissionsRejected: () -> Unit,
     private val dataFields: List<Long> = listOf(0L),
     // Signal strength at 1 meter measured in dBm. -59 is a typical starting point for BLE devices.
     private val txPower: Int = -59,
@@ -176,8 +177,11 @@ class IBeacon(
                 actionFunction?.invoke() ?: error("No action function.")
             }
 
-            // TODO: Handle the error appropriately.
-            else -> Toast.makeText(context, R.string.permission_error, Toast.LENGTH_LONG).show()
+            else -> {
+                // TODO: Handle the error appropriately.
+                Toast.makeText(context, R.string.permissions_rejected, Toast.LENGTH_LONG).show()
+                onAllPermissionsRejected()
+            }
         }
     }
 
