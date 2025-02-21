@@ -193,14 +193,16 @@ fun DemoApp(
         ) {
             Row {
                 Select(
-                    options = txPowerLevels,
-                    handleOnClick = onTxPowerLevelChange,
+                    handleOnClick = onModeChange,
+                    label = stringResource(R.string.mode),
+                    options = modes,
                     modifier = Modifier.weight(1f)
                 )
                 Spacer(modifier = Modifier.width(10.dp))
                 Select(
-                    options = modes,
-                    handleOnClick = onModeChange,
+                    handleOnClick = onTxPowerLevelChange,
+                    label = stringResource(R.string.tx_power),
+                    options = txPowerLevels,
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -260,7 +262,12 @@ fun NumericTextField(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Select(options: Map<String, Int>, handleOnClick: (Int) -> Unit, modifier: Modifier = Modifier) {
+fun Select(
+    handleOnClick: (Int) -> Unit,
+    label: String,
+    options: Map<String, Int>,
+    modifier: Modifier = Modifier
+) {
     var expanded by remember { mutableStateOf(false) }
     var selectedOption by remember { mutableStateOf(options.keys.last()) }
 
@@ -275,9 +282,10 @@ fun Select(options: Map<String, Int>, handleOnClick: (Int) -> Unit, modifier: Mo
         modifier = modifier
     ) {
         TextField(
-            label = { Text(stringResource(R.string.tx_power)) },
+            label = { Text(label) },
             onValueChange = { selectedOption = it },
             readOnly = true,
+            singleLine = true,
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             value = selectedOption,
             modifier = Modifier.menuAnchor()
