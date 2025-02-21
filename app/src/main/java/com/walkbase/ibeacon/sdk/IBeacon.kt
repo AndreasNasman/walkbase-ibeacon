@@ -22,10 +22,7 @@ private const val IBEACON_TYPE_CODE: Int = 0x0215
 
 class IBeacon(
     private val context: ComponentActivity,
-    private val beaconLayout: String = IBEACON_LAYOUT,
-    private val beaconTypeCode: Int = IBEACON_TYPE_CODE,
     private val dataFields: List<Long> = listOf(0L),
-    private val manufacturerId: Int = APPLE_INC_MANUFACTURER_ID,
     // Signal strength at 1 meter measured in dBm. -59 is a typical starting point for BLE devices.
     private val txPower: Int = -59,
     // TODO: Calculate the UUID per device.
@@ -52,7 +49,7 @@ class IBeacon(
         "High" to AdvertiseSettings.ADVERTISE_TX_POWER_HIGH
     )
 
-    private val beaconParser = BeaconParser().setBeaconLayout(beaconLayout)
+    private val beaconParser = BeaconParser().setBeaconLayout(IBEACON_LAYOUT)
     private val beaconTransmitter = BeaconTransmitter(context, beaconParser)
 
     fun startBeaconTransmission() {
@@ -62,8 +59,8 @@ class IBeacon(
                     .setId1(uuid)
                     .setId2(majorValue)
                     .setId3(minorValue)
-                    .setBeaconTypeCode(beaconTypeCode)
-                    .setManufacturer(manufacturerId)
+                    .setBeaconTypeCode(IBEACON_TYPE_CODE)
+                    .setManufacturer(APPLE_INC_MANUFACTURER_ID)
                     .setTxPower(txPower)
                     .setDataFields(dataFields)
                     .build()
