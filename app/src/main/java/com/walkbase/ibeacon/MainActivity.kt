@@ -92,8 +92,10 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        play()
-        shouldResume.value = false
+        if (shouldResume.value) {
+            play()
+            shouldResume.value = false
+        }
     }
 
     private val play: () -> Unit = {
