@@ -2,6 +2,18 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- https://altbeacon.github.io/android-beacon-library/requesting_permission.html -->
+    <!-- You must manually add this permission to the ApplicationManifest.xml: -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <!-- If you target Android 12 or higher (SDK 31+) you must also request: -->
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
+    <!-- Below is only needed if you want to emit beacon transmissions -->
+    <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" />
+    <!-- Below is only needed if you want to read the device name or establish a bluetooth connection -->
+    <!--    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />-->
+    <!-- If you want to detect beacons in the background, you must also add: -->
+    <!--    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />-->
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"

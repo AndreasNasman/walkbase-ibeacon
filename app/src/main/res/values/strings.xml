@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">iBeacon</string>
+    <string name="major_value">Major Value</string>
+    <string name="minor_value">Minor Value</string>
+    <string name="mode">Mode</string>
+    <string name="permissions_granted">All required permissions granted.</string>
+    <string name="permissions_rejected">You must give access to location and Bluetooth for the iBeacon SDK.</string>
+    <string name="transmitting">Transmitting with mode=%s and TX power=%s.</string>
+    <string name="tx_power">TX Power</string>
 </resources>
