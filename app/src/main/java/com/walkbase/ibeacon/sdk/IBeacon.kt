@@ -18,16 +18,20 @@ private const val APPLE_INC_MANUFACTURER_ID: Int = 0x004C
 
 // https://github.com/AltBeacon/android-beacon-library/issues/13
 private const val IBEACON_LAYOUT = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25"
-private const val IBEACON_TYPE_CODE: Int = 0x0215
+private const val IBEACON_TYPE_CODE = 0x0215
+
+// Signal strength at 1 meter measured in dBm. -59 is a typical starting point for BLE devices.
+private const val TYPING_SIGNAL_STRENGTH_AT_1M = -59
+
+// TODO: Calculate the UUID per device.
+private const val UUID = "856E3AB6-5EA8-45EB-9813-676BB29C4316"
 
 class IBeacon(
     private val context: ComponentActivity,
     private val onAllPermissionsRejected: () -> Unit,
     private val dataFields: List<Long> = listOf(0L),
-    // Signal strength at 1 meter measured in dBm. -59 is a typical starting point for BLE devices.
-    private val txPower: Int = -59,
-    // TODO: Calculate the UUID per device.
-    private val uuid: String = "856E3AB6-5EA8-45EB-9813-676BB29C4316",
+    private val txPower: Int = TYPING_SIGNAL_STRENGTH_AT_1M,
+    private val uuid: String = UUID,
 ) {
     var majorValue: String = "0"
         set(value) {
